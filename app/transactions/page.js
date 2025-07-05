@@ -6,6 +6,7 @@ import TransactionList from './TransactionList';
 import TransactionChart from './TransactionChart';
 import ErrorState from '../components/ErrorState';
 import Loader from '../components/Loader';
+import logo from '../../assets/Logo.png'
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
@@ -135,9 +136,11 @@ export default function TransactionsPage() {
         {/* Header Section */}
         <div className="text-center mb-6 sm:mb-8 lg:mb-12">
           <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 glow-effect">
-            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-            </svg>
+            <img 
+                src={logo.src}
+                alt="Logo"
+                className="w-8 h-8 sm:w-8 sm:h-8 text-white" 
+            />
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold gradient-text mb-2 sm:mb-4">
             Finance Tracker
@@ -202,7 +205,7 @@ export default function TransactionsPage() {
         <div className="text-center mb-6 sm:mb-8">
           <button
             onClick={() => setShowForm(true)}
-            className="btn-primary inline-flex items-center gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg w-full sm:w-auto"
+            className="btn-primary inline-flex justify-center items-center gap-2 sm:gap-3 text-sm sm:text-base lg:text-lg w-full sm:w-auto"
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

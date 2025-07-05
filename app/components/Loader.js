@@ -3,10 +3,6 @@ export default function Loader() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
       <div className="text-center">
         <div className="relative">
-          {/* Outer ring */}
-          <div className="w-20 h-20 border-4 border-gray-700 rounded-full animate-spin">
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
-          </div>
           
           {/* Inner ring */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 border-4 border-gray-600 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}>
