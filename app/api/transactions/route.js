@@ -1,45 +1,19 @@
 import { NextResponse } from 'next/server';
-
-// In-memory storage for demo purposes
-// In a real app, this would be replaced with MongoDB
-let transactions = [
-  {
-    _id: '1',
-    amount: 150.00,
-    description: 'Grocery shopping',
-    date: '2024-01-15',
-    type: 'expense',
-    createdAt: new Date('2024-01-15').toISOString()
-  },
-  {
-    _id: '2',
-    amount: 2500.00,
-    description: 'Salary',
-    date: '2024-01-01',
-    type: 'income',
-    createdAt: new Date('2024-01-01').toISOString()
-  },
-  {
-    _id: '3',
-    amount: 80.00,
-    description: 'Dinner with friends',
-    date: '2024-01-10',
-    type: 'expense',
-    createdAt: new Date('2024-01-10').toISOString()
-  }
-];
-
-let nextId = 4;
+import connectDB from '../../../lib/mongodb';
+import Transaction from '../../../models/Transaction';
 
 export async function GET() {
   try {
-    // Sort by date (newest first)
-    const sortedTransactions = [...transactions].sort((a, b) => 
-      new Date(b.date) - new Date(a.date)
-    );
+    await connectDB();
     
-    return NextResponse.json(sortedTransactions);
+    // Get all transactions sorted by date (newest first)
+    const transactions = await Transaction.find({})
+      .sort({ date: -1 })
+      .lean();
+    
+    return NextResponse.json(transactions);
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch transactions' },
       { status: 500 }
@@ -49,6 +23,8 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    await connectDB();
+    
     const body = await request.json();
     const { amount, description, date, type } = body;
 
@@ -81,20 +57,29 @@ export async function POST(request) {
       );
     }
 
-    const newTransaction = {
-      _id: nextId.toString(),
+    // Create new transaction
+    const newTransaction = new Transaction({
       amount: parseFloat(amount),
       description: description.trim(),
-      date,
-      type,
-      createdAt: new Date().toISOString()
-    };
+      date: new Date(date),
+      type
+    });
 
-    transactions.push(newTransaction);
-    nextId++;
-
-    return NextResponse.json(newTransaction, { status: 201 });
+    const savedTransaction = await newTransaction.save();
+    
+    return NextResponse.json(savedTransaction, { status: 201 });
   } catch (error) {
+    console.error('Database error:', error);
+    
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return NextResponse.json(
+        { error: errors.join(', ') },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create transaction' },
       { status: 500 }
@@ -104,6 +89,8 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
+    await connectDB();
+    
     const body = await request.json();
     const { _id, amount, description, date, type } = body;
 
@@ -143,26 +130,38 @@ export async function PUT(request) {
       );
     }
 
-    const transactionIndex = transactions.findIndex(t => t._id === _id);
-    
-    if (transactionIndex === -1) {
+    // Find and update transaction
+    const updatedTransaction = await Transaction.findByIdAndUpdate(
+      _id,
+      {
+        amount: parseFloat(amount),
+        description: description.trim(),
+        date: new Date(date),
+        type
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTransaction) {
       return NextResponse.json(
         { error: 'Transaction not found' },
         { status: 404 }
       );
     }
 
-    // Update the transaction
-    transactions[transactionIndex] = {
-      ...transactions[transactionIndex],
-      amount: parseFloat(amount),
-      description: description.trim(),
-      date,
-      type
-    };
-
-    return NextResponse.json(transactions[transactionIndex]);
+    return NextResponse.json(updatedTransaction);
   } catch (error) {
+    console.error('Database error:', error);
+    
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return NextResponse.json(
+        { error: errors.join(', ') },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Failed to update transaction' },
       { status: 500 }
@@ -172,6 +171,8 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
+    await connectDB();
+    
     const body = await request.json();
     const { _id } = body;
     
@@ -182,22 +183,21 @@ export async function DELETE(request) {
       );
     }
     
-    const transactionIndex = transactions.findIndex(t => t._id === _id);
+    // Find and delete transaction
+    const deletedTransaction = await Transaction.findByIdAndDelete(_id);
     
-    if (transactionIndex === -1) {
+    if (!deletedTransaction) {
       return NextResponse.json(
         { error: 'Transaction not found' },
         { status: 404 }
       );
     }
 
-    // Remove the transaction
-    const deletedTransaction = transactions.splice(transactionIndex, 1)[0];
-
     return NextResponse.json(
       { message: 'Transaction deleted successfully', transaction: deletedTransaction }
     );
   } catch (error) {
+    console.error('Database error:', error);
     return NextResponse.json(
       { error: 'Failed to delete transaction' },
       { status: 500 }
